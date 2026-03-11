@@ -1,6 +1,7 @@
 import * as Y from "yjs";
 import { getOrCreateRoom, removeClient } from "./rooms.js";
 const UPDATE_MESSAGE = 1;
+const AWARENESS_MESSAGE = 2;
 function encodeMessage(type, payload) {
     const out = new Uint8Array(payload.length + 1);
     out[0] = type;
@@ -43,6 +44,16 @@ export function onClientMessage(socket, room, data) {
     if (decoded.type === UPDATE_MESSAGE) {
         Y.applyUpdate(room.doc, decoded.payload);
         broadcastUpdate(room, decoded.payload, socket);
+        return;
+    }
+    if (decoded.type === AWARENESS_MESSAGE) {
+        const message = encodeMessage(AWARENESS_MESSAGE, decoded.payload);
+        for (const client of room.clients) {
+            if (client === socket || client.readyState !== client.OPEN) {
+                continue;
+            }
+            client.send(message);
+        }
     }
 }
 export function onClientClose(socket, room) {

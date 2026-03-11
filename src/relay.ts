@@ -3,6 +3,7 @@ import type WebSocket from "ws";
 import { getOrCreateRoom, removeClient, type RoomState } from "./rooms.js";
 
 const UPDATE_MESSAGE = 1;
+const AWARENESS_MESSAGE = 2;
 
 function encodeMessage(type: number, payload: Uint8Array): Uint8Array {
   const out = new Uint8Array(payload.length + 1);
@@ -68,6 +69,17 @@ export function onClientMessage(
   if (decoded.type === UPDATE_MESSAGE) {
     Y.applyUpdate(room.doc, decoded.payload);
     broadcastUpdate(room, decoded.payload, socket);
+    return;
+  }
+
+  if (decoded.type === AWARENESS_MESSAGE) {
+    const message = encodeMessage(AWARENESS_MESSAGE, decoded.payload);
+    for (const client of room.clients) {
+      if (client === socket || client.readyState !== client.OPEN) {
+        continue;
+      }
+      client.send(message);
+    }
   }
 }
 
