@@ -27,6 +27,12 @@ wss.on("connection", (socket, req) => {
 
   const room = attachClientToRoom(socket, roomId, filePath);
 
+  console.log("[phase1-server] client connected", {
+    remoteAddress: req.socket.remoteAddress,
+    roomId,
+    filePath,
+  });
+
   socket.on("pong", () => {
     liveSocket.isAlive = true;
   });
@@ -39,7 +45,21 @@ wss.on("connection", (socket, req) => {
   });
 
   socket.on("close", () => {
+    console.log("[phase1-server] client disconnected", {
+      remoteAddress: req.socket.remoteAddress,
+      roomId,
+      filePath,
+    });
     onClientClose(socket, room);
+  });
+
+  socket.on("error", (error) => {
+    console.error("[phase1-server] socket error", {
+      remoteAddress: req.socket.remoteAddress,
+      roomId,
+      filePath,
+      message: error.message,
+    });
   });
 });
 

@@ -15,6 +15,11 @@ wss.on("connection", (socket, req) => {
     const roomId = requestUrl.searchParams.get("room") ?? "phase1-room";
     const filePath = requestUrl.searchParams.get("file") ?? "README.md";
     const room = attachClientToRoom(socket, roomId, filePath);
+    console.log("[phase1-server] client connected", {
+        remoteAddress: req.socket.remoteAddress,
+        roomId,
+        filePath,
+    });
     socket.on("pong", () => {
         liveSocket.isAlive = true;
     });
@@ -25,7 +30,20 @@ wss.on("connection", (socket, req) => {
         onClientMessage(socket, room, data);
     });
     socket.on("close", () => {
+        console.log("[phase1-server] client disconnected", {
+            remoteAddress: req.socket.remoteAddress,
+            roomId,
+            filePath,
+        });
         onClientClose(socket, room);
+    });
+    socket.on("error", (error) => {
+        console.error("[phase1-server] socket error", {
+            remoteAddress: req.socket.remoteAddress,
+            roomId,
+            filePath,
+            message: error.message,
+        });
     });
 });
 const heartbeat = setInterval(() => {
