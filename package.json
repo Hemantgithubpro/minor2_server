@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Phase 1 Yjs WebSocket relay server",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "lib0": "^0.2.117",
+    "ws": "^8.19.0",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.29"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
