@@ -8,6 +8,15 @@ const port = Number(process.env.PORT ?? 1234);
 const pingIntervalMs = Number(process.env.PING_INTERVAL_MS ?? 30000);
 const server = createServer();
 const wss = new WebSocketServer({ server });
+function toBuffer(data) {
+    if (Buffer.isBuffer(data)) {
+        return data;
+    }
+    if (Array.isArray(data)) {
+        return Buffer.concat(data);
+    }
+    return Buffer.from(data);
+}
 wss.on("connection", (socket, req) => {
     const liveSocket = socket;
     liveSocket.isAlive = true;
@@ -27,7 +36,17 @@ wss.on("connection", (socket, req) => {
         if (!isBinary) {
             return;
         }
-        onClientMessage(socket, room, data);
+        try {
+            onClientMessage(socket, room, toBuffer(data));
+        }
+        catch (error) {
+            console.error("[phase1-server] message parse error", {
+                remoteAddress: req.socket.remoteAddress,
+                roomId,
+                filePath,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
     });
     socket.on("close", () => {
         console.log("[phase1-server] client disconnected", {

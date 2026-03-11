@@ -13,7 +13,7 @@ function encodeMessage(type: number, payload: Uint8Array): Uint8Array {
 }
 
 function decodeMessage(
-  data: Buffer,
+  data: Uint8Array,
 ): { type: number; payload: Uint8Array } | null {
   if (data.length < 1) {
     return null;
@@ -59,7 +59,7 @@ export function attachClientToRoom(
 export function onClientMessage(
   socket: WebSocket,
   room: RoomState,
-  data: Buffer,
+  data: Uint8Array,
 ): void {
   const decoded = decodeMessage(data);
   if (!decoded) {

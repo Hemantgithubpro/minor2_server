@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { createServer } from "node:http";
-import WebSocket, { WebSocketServer } from "ws";
+import WebSocket, { WebSocketServer, type RawData } from "ws";
 import { attachClientToRoom, onClientClose, onClientMessage } from "./relay.js";
 
 config();
@@ -13,6 +13,18 @@ const server = createServer();
 const wss = new WebSocketServer({ server });
 
 type LiveSocket = WebSocket & { isAlive?: boolean };
+
+function toBuffer(data: RawData): Buffer {
+  if (Buffer.isBuffer(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return Buffer.concat(data);
+  }
+
+  return Buffer.from(data);
+}
 
 wss.on("connection", (socket, req) => {
   const liveSocket = socket as LiveSocket;
@@ -41,7 +53,17 @@ wss.on("connection", (socket, req) => {
     if (!isBinary) {
       return;
     }
-    onClientMessage(socket, room, data as Buffer);
+
+    try {
+      onClientMessage(socket, room, toBuffer(data));
+    } catch (error) {
+      console.error("[phase1-server] message parse error", {
+        remoteAddress: req.socket.remoteAddress,
+        roomId,
+        filePath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   });
 
   socket.on("close", () => {
